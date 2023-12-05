@@ -22,6 +22,7 @@ public class Token implements Serializable {
     @Column(unique = true)
     public String jwtToken;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     public TokenType tokenType = TokenType.BEARER;
 
