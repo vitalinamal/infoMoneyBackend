@@ -1,19 +1,17 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/money_backend
-    username: admin
-    password: admin
+    username: money_backend
+    password: money_backend
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: create-drop
-#      ddl-auto: update
+    #      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
         format_sql: true
-    database: postgresql
-
 
 application:
   security:
