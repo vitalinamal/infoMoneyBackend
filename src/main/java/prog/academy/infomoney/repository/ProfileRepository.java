@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
     @EntityGraph(attributePaths = {"transactions"})
-    Optional<Profile> findByNameAndUserId(String name, Long userId);
+    Optional<Profile> findByName(String name);
 
 }

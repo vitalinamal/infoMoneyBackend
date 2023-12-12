@@ -1,20 +1,18 @@
 package prog.academy.infomoney.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import prog.academy.infomoney.dto.request.TransactionRequest;
+import prog.academy.infomoney.dto.response.ProfileResponse;
 import prog.academy.infomoney.dto.response.TransactionResponse;
-import prog.academy.infomoney.dto.response.UserProfileTransactionsResponse;
-import prog.academy.infomoney.dto.response.UserTotalTransactionsResponse;
+import prog.academy.infomoney.dto.response.ProfileTransactionsResponse;
+import prog.academy.infomoney.dto.response.TotalTransactionsResponse;
 import prog.academy.infomoney.entity.Transaction;
-import prog.academy.infomoney.entity.User;
 import prog.academy.infomoney.enums.TransactionType;
 import prog.academy.infomoney.repository.TransactionRepository;
 
 import java.math.BigDecimal;
-import java.security.Principal;
 
 @Service
 @RequiredArgsConstructor
@@ -24,11 +22,9 @@ public class TransactionService {
     private final ProfileService profileService;
 
     @Transactional
-    public void createTransaction(TransactionRequest request, String profileName, Principal connectedUser) {
+    public void createTransaction(TransactionRequest request, String profileName) {
 
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-
-        var profile = profileService.getProfileByName(profileName, user.getId());
+        var profile = profileService.getProfileByName(profileName);
 
         transactionRepository.save(Transaction.builder()
                 .profile(profile)
@@ -38,27 +34,30 @@ public class TransactionService {
                 .build());
     }
 
-    public UserTotalTransactionsResponse getTotalTransactionsForUsers(Principal connectedUser) {
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    public TotalTransactionsResponse getTotalTransactionsForUsers() {
 
-        var income = transactionRepository.sumUserIncomeTransactions(user);
-        var outcome = transactionRepository.sumUserOutcomeTransactions(user);
+        var income = transactionRepository.sunIncomeTransactions();
+        var outcome = transactionRepository.sumOutcomeTransactions();
 
         var incomeValue = income == null ? BigDecimal.ZERO : BigDecimal.valueOf(income);
         var outcomeValue = outcome == null ? BigDecimal.ZERO : BigDecimal.valueOf(outcome);
 
-        return UserTotalTransactionsResponse.builder()
+        var profiles = profileService.getProfiles();
+
+        return TotalTransactionsResponse.builder()
                 .totalIncome(incomeValue)
                 .totalOutcome(outcomeValue)
                 .totalBalance(incomeValue.subtract(outcomeValue))
+                .profiles(profiles.stream()
+                        .map(p -> new ProfileResponse(p.getId(), p.getName()))
+                        .toList())
                 .build();
 
     }
 
-    public UserProfileTransactionsResponse getTotalTransactionsForUserProfile(String profileName, Principal connectedUser) {
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    public ProfileTransactionsResponse getTotalTransactionsForProfile(String profileName) {
 
-        var profile = profileService.getProfileByName(profileName, user.getId());
+        var profile = profileService.getProfileByName(profileName);
 
         var income = transactionRepository.sumProfileIncomeTransactions(profile);
         var outcome = transactionRepository.sumProfileOutcomeTransactions(profile);
@@ -68,8 +67,9 @@ public class TransactionService {
 
         var transactions = transactionRepository.findAllByProfile(profile);
 
-        return UserProfileTransactionsResponse.builder()
-                .userTransactionStatus(this.getTotalTransactionsForUsers(connectedUser))
+        return ProfileTransactionsResponse.builder()
+                .totalTransactionsStatus(this.getTotalTransactionsForUsers())
+                .currentProfileName(profile.getName())
                 .profileTotalIncome(incomeValue)
                 .profileTotalOutcome(outcomeValue)
                 .profileTotalBalance(incomeValue.subtract(outcomeValue))

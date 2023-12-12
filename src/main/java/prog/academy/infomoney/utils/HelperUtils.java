@@ -1,6 +1,8 @@
 package prog.academy.infomoney.utils;
 
-import prog.academy.infomoney.entity.User;
+import prog.academy.infomoney.entity.Profile;
+
+import java.util.List;
 
 public class HelperUtils {
 
@@ -8,8 +10,8 @@ public class HelperUtils {
         throw new IllegalStateException("Utility class");
     }
 
-    public static boolean checkIfProfileNameExist(String name, User user) {
-        return user.getProfiles().stream()
+    public static boolean checkIfProfileNameExist(String name, List<Profile> user) {
+        return user.stream()
                 .anyMatch(p -> p.getName().equals(name));
     }
 }

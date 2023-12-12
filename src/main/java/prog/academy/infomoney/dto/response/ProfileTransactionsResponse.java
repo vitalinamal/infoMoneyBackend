@@ -6,8 +6,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Builder
-public record UserProfileTransactionsResponse(
-        UserTotalTransactionsResponse userTransactionStatus,
+public record ProfileTransactionsResponse(
+        TotalTransactionsResponse totalTransactionsStatus,
+        String currentProfileName,
         BigDecimal profileTotalBalance,
         BigDecimal profileTotalIncome,
         BigDecimal profileTotalOutcome,
