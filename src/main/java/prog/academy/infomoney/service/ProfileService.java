@@ -3,15 +3,12 @@ package prog.academy.infomoney.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import prog.academy.infomoney.dto.request.ProfileCreateRequest;
-import prog.academy.infomoney.dto.request.ProfileUpdateRequest;
+import prog.academy.infomoney.dto.request.ProfileRequest;
 import prog.academy.infomoney.entity.Profile;
 import prog.academy.infomoney.exceptions.ApplicationException;
 import prog.academy.infomoney.repository.ProfileRepository;
 
 import java.util.List;
-
-import static prog.academy.infomoney.utils.HelperUtils.checkIfProfileNameExist;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +17,8 @@ public class ProfileService {
     private final ProfileRepository repository;
 
     @Transactional(readOnly = true)
-    public Profile getProfileByName(String name) {
-        return getProfile(name);
+    public Profile getProfileByName(Long profileId) {
+        return getProfile(profileId);
     }
 
 
@@ -32,10 +29,8 @@ public class ProfileService {
 
 
     @Transactional
-    public void createProfile(ProfileCreateRequest request) {
-        var profiles = this.repository.findAll();
-
-        if (checkIfProfileNameExist(request.name(), profiles)) {
+    public void createProfile(ProfileRequest request) {
+        if (repository.existsByName(request.name())) {
             throw new ApplicationException("Current user already have a profile with this name:  " + request.name());
         }
 
@@ -45,30 +40,28 @@ public class ProfileService {
     }
 
     @Transactional
-    public void updateProfile(ProfileUpdateRequest request) {
+    public void updateProfile(Long id, ProfileRequest request) {
 
-        var profiles = this.repository.findAll();
+        var currentProfile = this.getProfile(id);
 
-        var currentProfile = this.getProfile(request.currentName());
-
-        if (checkIfProfileNameExist(request.newName(), profiles)) {
-            throw new ApplicationException("Current user already have a profile with this name:  " + request.newName());
+        if (repository.existsByName(request.name())) {
+            throw new ApplicationException("Current user already have a profile with this name:  " + request.name());
         }
 
-        currentProfile.setName(request.newName());
+        currentProfile.setName(request.name());
 
         repository.save(currentProfile);
     }
 
     @Transactional
-    public void deleteProfile(String name) {
-        var currentProfile = this.getProfile(name);
+    public void deleteProfile(Long id) {
+        var currentProfile = this.getProfile(id);
         repository.deleteById(currentProfile.getId());
     }
 
-    private Profile getProfile(String name) {
+    private Profile getProfile(Long id) {
         return repository
-                .findByName(name)
-                .orElseThrow(() -> new ApplicationException("Current user doesn't have a profile with this name:  " + name));
+                .findById(id)
+                .orElseThrow(() -> new ApplicationException("Current user doesn't have a profile with this id:  " + id));
     }
 }

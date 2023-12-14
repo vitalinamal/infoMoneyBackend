@@ -23,17 +23,17 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProfileTransactionsResponse> getTotalTransactionsForProfile(@PathVariable("id") String profileName) {
+    public ResponseEntity<ProfileTransactionsResponse> getTotalTransactionsForProfile(@PathVariable("id") Long profileId) {
         return ResponseEntity
-                .ok(service.getTotalTransactionsForProfile(profileName));
+                .ok(service.getTotalTransactionsForProfile(profileId));
     }
 
 
     @PostMapping("/{id}")
     public ResponseEntity<Void> createTransaction(
-            @PathVariable("id") String profileName,
+            @PathVariable("id") Long profileId,
             @RequestBody TransactionRequest request) {
-        service.createTransaction(request, profileName);
+        service.createTransaction(request, profileId);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .build();

@@ -22,9 +22,9 @@ public class TransactionService {
     private final ProfileService profileService;
 
     @Transactional
-    public void createTransaction(TransactionRequest request, String profileName) {
+    public void createTransaction(TransactionRequest request, Long profileId) {
 
-        var profile = profileService.getProfileByName(profileName);
+        var profile = profileService.getProfileByName(profileId);
 
         transactionRepository.save(Transaction.builder()
                 .profile(profile)
@@ -55,9 +55,9 @@ public class TransactionService {
 
     }
 
-    public ProfileTransactionsResponse getTotalTransactionsForProfile(String profileName) {
+    public ProfileTransactionsResponse getTotalTransactionsForProfile(Long profileId) {
 
-        var profile = profileService.getProfileByName(profileName);
+        var profile = profileService.getProfileByName(profileId);
 
         var income = transactionRepository.sumProfileIncomeTransactions(profile);
         var outcome = transactionRepository.sumProfileOutcomeTransactions(profile);

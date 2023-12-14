@@ -4,8 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import prog.academy.infomoney.dto.request.ProfileCreateRequest;
-import prog.academy.infomoney.dto.request.ProfileUpdateRequest;
+import prog.academy.infomoney.dto.request.ProfileRequest;
 import prog.academy.infomoney.service.ProfileService;
 
 @RestController
@@ -16,24 +15,24 @@ public class ProfileController {
     private final ProfileService service;
 
     @PostMapping
-    public ResponseEntity<Void> createProfile(@RequestBody ProfileCreateRequest request) {
+    public ResponseEntity<Void> createProfile(@RequestBody ProfileRequest request) {
         service.createProfile(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .build();
     }
 
-    @PatchMapping
-    public ResponseEntity<Void> updateProfile(@RequestBody ProfileUpdateRequest request) {
-        service.updateProfile(request);
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateProfile(@PathVariable("id") Long id, @RequestBody ProfileRequest request) {
+        service.updateProfile(id, request);
         return ResponseEntity
                 .ok()
                 .build();
     }
 
-    @DeleteMapping("/{name}")
-    public ResponseEntity<Void> updateProfile(@PathVariable("name") String name) {
-        service.deleteProfile(name);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProfile(@PathVariable("id") Long id) {
+        service.deleteProfile(id);
         return ResponseEntity
                 .noContent()
                 .build();

@@ -10,7 +10,10 @@ import java.util.Optional;
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
+    @Override
     @EntityGraph(attributePaths = {"transactions"})
-    Optional<Profile> findByName(String name);
+    Optional<Profile> findById(Long id);
+
+    boolean existsByName(String name);
 
 }
