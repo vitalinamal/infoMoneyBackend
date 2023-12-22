@@ -4,5 +4,6 @@ import java.math.BigDecimal;
 
 public record TransactionRequest(BigDecimal amount,
                                  String description,
-                                 String type) {
+                                 String type,
+                                 String createdAt) {
 }

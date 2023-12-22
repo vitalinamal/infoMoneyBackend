@@ -1,19 +1,25 @@
 package prog.academy.infomoney.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import prog.academy.infomoney.dto.request.TransactionRequest;
 import prog.academy.infomoney.dto.response.ProfileResponse;
-import prog.academy.infomoney.dto.response.TransactionResponse;
 import prog.academy.infomoney.dto.response.ProfileTransactionsResponse;
 import prog.academy.infomoney.dto.response.TotalTransactionsResponse;
+import prog.academy.infomoney.dto.response.TransactionResponse;
 import prog.academy.infomoney.entity.Transaction;
 import prog.academy.infomoney.enums.TransactionType;
 import prog.academy.infomoney.repository.TransactionRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
+
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
@@ -31,7 +37,15 @@ public class TransactionService {
                 .type(TransactionType.valueOf(request.type()))
                 .amount(request.amount())
                 .description(request.description())
+                .createdAt(convertToLocalDateTime(request))
                 .build());
+    }
+
+    private static LocalDateTime convertToLocalDateTime(TransactionRequest request) {
+        // Define the date format
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        return LocalDate.parse(request.createdAt(), formatter).atStartOfDay();
     }
 
     public TotalTransactionsResponse getTotalTransactionsForUsers() {

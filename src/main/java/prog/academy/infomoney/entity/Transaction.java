@@ -39,9 +39,4 @@ public class Transaction implements Serializable {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }
