@@ -38,4 +38,25 @@ public class TransactionController {
                 .status(HttpStatus.CREATED)
                 .build();
     }
+
+    @PutMapping("/{profileId}/update/{transactionId}")
+    public ResponseEntity<Void> updateTransaction(
+            @PathVariable("profileId") Long profileId,
+            @PathVariable("transactionId") Long transactionId,
+            @RequestBody TransactionRequest request) {
+        service.updateTransaction(request, profileId, transactionId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @DeleteMapping("/{profileId}/delete/{transactionId}")
+    public ResponseEntity<Void> deleteTransaction(
+            @PathVariable("profileId") Long profileId,
+            @PathVariable("transactionId") Long transactionId) {
+        service.deleteTransaction(profileId, transactionId);
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
 }

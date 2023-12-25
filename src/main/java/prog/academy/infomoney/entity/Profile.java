@@ -24,6 +24,10 @@ public class Profile implements Serializable {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "profile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private List<Transaction> transactions;
 }

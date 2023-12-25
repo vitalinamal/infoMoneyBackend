@@ -9,6 +9,7 @@ import java.util.List;
 public record ProfileTransactionsResponse(
         TotalTransactionsResponse totalTransactionsStatus,
         String currentProfileName,
+        Long currentProfileId,
         BigDecimal profileTotalBalance,
         BigDecimal profileTotalIncome,
         BigDecimal profileTotalOutcome,

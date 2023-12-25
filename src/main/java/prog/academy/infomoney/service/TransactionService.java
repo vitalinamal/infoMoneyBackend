@@ -9,14 +9,18 @@ import prog.academy.infomoney.dto.response.ProfileResponse;
 import prog.academy.infomoney.dto.response.ProfileTransactionsResponse;
 import prog.academy.infomoney.dto.response.TotalTransactionsResponse;
 import prog.academy.infomoney.dto.response.TransactionResponse;
+import prog.academy.infomoney.entity.Profile;
 import prog.academy.infomoney.entity.Transaction;
 import prog.academy.infomoney.enums.TransactionType;
+import prog.academy.infomoney.exceptions.ApplicationException;
+import prog.academy.infomoney.repository.ProfileRepository;
 import prog.academy.infomoney.repository.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 
 @Log4j2
@@ -25,12 +29,12 @@ import java.time.format.DateTimeFormatter;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final ProfileService profileService;
+    private final ProfileRepository profileRepository;
 
     @Transactional
     public void createTransaction(TransactionRequest request, Long profileId) {
 
-        var profile = profileService.getProfileByName(profileId);
+        var profile = this.getProfile(profileId);
 
         transactionRepository.save(Transaction.builder()
                 .profile(profile)
@@ -39,6 +43,44 @@ public class TransactionService {
                 .description(request.description())
                 .createdAt(convertToLocalDateTime(request))
                 .build());
+    }
+
+    @Transactional
+    public void updateTransaction(TransactionRequest request, Long profileId, Long transactionId) {
+
+        var profile = this.getProfile(profileId);
+
+        var transaction = this.getTransaction(transactionId);
+
+        if(!transaction.getProfile().equals(profile)) {
+            throw new ApplicationException("This transaction doesn't belong to wanted user!");
+        }
+
+        updateTransactionFromRequest(request, transaction);
+
+        transactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public void deleteTransaction(Long profileId, Long transactionId) {
+
+        var profile = this.getProfile(profileId);
+
+        var transaction = this.getTransaction(transactionId);
+
+        if(!transaction.getProfile().equals(profile)) {
+            throw new ApplicationException("This transaction doesn't belong to wanted user!");
+        }
+
+        profile.getTransactions().removeIf(t -> t.equals(transaction));
+        this.profileRepository.save(profile);
+    }
+
+    private static void updateTransactionFromRequest(TransactionRequest request, Transaction transaction) {
+        transaction.setAmount(request.amount());
+        transaction.setType(TransactionType.valueOf(request.type()));
+        transaction.setDescription(request.description());
+        transaction.setCreatedAt(convertToLocalDateTime(request));
     }
 
     private static LocalDateTime convertToLocalDateTime(TransactionRequest request) {
@@ -56,7 +98,7 @@ public class TransactionService {
         var incomeValue = income == null ? BigDecimal.ZERO : BigDecimal.valueOf(income);
         var outcomeValue = outcome == null ? BigDecimal.ZERO : BigDecimal.valueOf(outcome);
 
-        var profiles = profileService.getProfiles();
+        var profiles = this.getProfiles();
 
         return TotalTransactionsResponse.builder()
                 .totalIncome(incomeValue)
@@ -71,7 +113,7 @@ public class TransactionService {
 
     public ProfileTransactionsResponse getTotalTransactionsForProfile(Long profileId) {
 
-        var profile = profileService.getProfileByName(profileId);
+        var profile = this.getProfile(profileId);
 
         var income = transactionRepository.sumProfileIncomeTransactions(profile);
         var outcome = transactionRepository.sumProfileOutcomeTransactions(profile);
@@ -84,16 +126,35 @@ public class TransactionService {
         return ProfileTransactionsResponse.builder()
                 .totalTransactionsStatus(this.getTotalTransactionsForUsers())
                 .currentProfileName(profile.getName())
+                .currentProfileId(profile.getId())
                 .profileTotalIncome(incomeValue)
                 .profileTotalOutcome(outcomeValue)
                 .profileTotalBalance(incomeValue.subtract(outcomeValue))
                 .profileTransactions(transactions.stream().map(t -> TransactionResponse.builder()
+                        .id(t.getId())
                         .amount(t.getAmount())
                         .description(t.getDescription())
                         .type(t.getType())
                         .createdAt(t.getCreatedAt())
                         .build()).toList())
                 .build();
+
+    }
+
+
+    private List<Profile> getProfiles() {
+        return this.profileRepository.findAll();
+    }
+    private Transaction getTransaction(Long id) {
+        return transactionRepository
+                .findById(id)
+                .orElseThrow(() -> new ApplicationException("Transaction doesn't exist for id:  " + id));
+    }
+
+    private Profile getProfile(Long id) {
+        return profileRepository
+                .findById(id)
+                .orElseThrow(() -> new ApplicationException("Current user doesn't have a profile with this id:  " + id));
 
     }
 }

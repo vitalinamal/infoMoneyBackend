@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record TransactionResponse(
+        Long id,
         String description,
         BigDecimal amount,
         TransactionType type,
