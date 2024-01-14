@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/money_backend}
-    username: ${POSTGRES_USERNAME:money_backend}
-    password: ${POSTGRES_PASSWORD:money_backend}
+    url: ${POSTGRES_URL:jdbc:postgresql://infomoney.cbsc4q0isjbr.eu-north-1.rds.amazonaws.com:5432/info_money}
+    username: ${POSTGRES_USERNAME:info_money}
+    password: ${POSTGRES_PASSWORD:info_money}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
