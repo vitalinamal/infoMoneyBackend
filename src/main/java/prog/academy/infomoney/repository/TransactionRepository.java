@@ -25,4 +25,33 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Double sumProfileOutcomeTransactions(@Param("profile") Profile profile);
 
     List<Transaction> findAllByProfile(Profile profile);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.profile = :profile AND t.wallet.id = :walletId AND t.category.id = :categoryId AND t.type = 'INCOME'")
+    Double sumProfileIncomeTransactionsByWalletAndCategory(
+            @Param("profile") Profile profile, @Param("walletId") Long walletId, @Param("categoryId") Long categoryId);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.profile = :profile AND t.wallet.id = :walletId AND t.category.id = :categoryId AND t.type = 'OUTCOME'")
+    Double sumProfileOutcomeTransactionsByWalletAndCategory(
+            @Param("profile") Profile profile, @Param("walletId") Long walletId, @Param("categoryId") Long categoryId);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.profile = :profile AND t.wallet.id = :walletId AND t.type = 'OUTCOME'")
+    Double sumProfileOutcomeTransactionsByWallet(@Param("profile") Profile profile, @Param("walletId") Long walletId);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.profile = :profile AND t.category.id = :categoryId AND t.type = 'OUTCOME'")
+    Double sumProfileOutcomeTransactionsByCategory(@Param("profile") Profile profile, @Param("categoryId") Long categoryId);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.profile = :profile AND t.wallet.id = :walletId AND t.type = 'INCOME'")
+    Double sumProfileIncomeTransactionsByWallet(@Param("profile") Profile profile, @Param("walletId") Long walletId);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.profile = :profile AND t.category.id = :categoryId AND t.type = 'INCOME'")
+    Double sumProfileIncomeTransactionsByCategory(@Param("profile") Profile profile, @Param("categoryId") Long categoryId);
+
+    @Query("SELECT t FROM Transaction t WHERE t.profile = :profile AND t.wallet.id = :walletId AND t.category.id = :categoryId")
+    List<Transaction> findAllByProfileAndWalletAndCategory(@Param("profile") Profile profile, @Param("walletId") Long walletId, @Param("categoryId") Long categoryId);
+
+    @Query("SELECT t FROM Transaction t WHERE t.profile = :profile AND t.wallet.id = :walletId")
+    List<Transaction> findAllByProfileAndWallet(@Param("profile") Profile profile, @Param("walletId") Long walletId);
+
+    @Query("SELECT t FROM Transaction t WHERE t.profile = :profile AND t.category.id = :categoryId")
+    List<Transaction> findAllByProfileAndCategory(@Param("profile") Profile profile, @Param("categoryId") Long categoryId);
 }

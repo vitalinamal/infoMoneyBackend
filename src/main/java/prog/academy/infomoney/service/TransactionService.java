@@ -28,19 +28,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionService {
 
-    private final TransactionRepository transactionRepository;
+    private final TransactionRepository repository;
     private final ProfileRepository profileRepository;
+    private final WalletService walletService;
+    private final CategoryService categoryService;
+    private final ProfileService profileService;
 
     @Transactional
     public void createTransaction(TransactionRequest request, Long profileId) {
 
-        var profile = this.getProfile(profileId);
+        var profile = this.profileService.getProfileById(profileId);
 
-        transactionRepository.save(Transaction.builder()
+        repository.save(Transaction.builder()
                 .profile(profile)
                 .type(TransactionType.valueOf(request.type()))
                 .amount(request.amount())
                 .description(request.description())
+                .category(request.categoryId() != null ? categoryService.getCategoryById(request.categoryId()) : null)
+                .wallet(request.walletId() != null ? walletService.getWalletById(request.walletId()) : null)
                 .createdAt(convertToLocalDateTime(request))
                 .build());
     }
@@ -48,27 +53,27 @@ public class TransactionService {
     @Transactional
     public void updateTransaction(TransactionRequest request, Long profileId, Long transactionId) {
 
-        var profile = this.getProfile(profileId);
+        var profile = this.profileService.getProfileById(profileId);
 
         var transaction = this.getTransaction(transactionId);
 
-        if(!transaction.getProfile().equals(profile)) {
+        if (!transaction.getProfile().equals(profile)) {
             throw new ApplicationException("This transaction doesn't belong to wanted user!");
         }
 
         updateTransactionFromRequest(request, transaction);
 
-        transactionRepository.save(transaction);
+        repository.save(transaction);
     }
 
     @Transactional
     public void deleteTransaction(Long profileId, Long transactionId) {
 
-        var profile = this.getProfile(profileId);
+        var profile = this.profileService.getProfileById(profileId);
 
         var transaction = this.getTransaction(transactionId);
 
-        if(!transaction.getProfile().equals(profile)) {
+        if (!transaction.getProfile().equals(profile)) {
             throw new ApplicationException("This transaction doesn't belong to wanted user!");
         }
 
@@ -92,13 +97,13 @@ public class TransactionService {
 
     public TotalTransactionsResponse getTotalTransactionsForUsers() {
 
-        var income = transactionRepository.sunIncomeTransactions();
-        var outcome = transactionRepository.sumOutcomeTransactions();
+        var income = repository.sunIncomeTransactions();
+        var outcome = repository.sumOutcomeTransactions();
 
         var incomeValue = income == null ? BigDecimal.ZERO : BigDecimal.valueOf(income);
         var outcomeValue = outcome == null ? BigDecimal.ZERO : BigDecimal.valueOf(outcome);
 
-        var profiles = this.getProfiles();
+        var profiles = this.profileService.getProfiles();
 
         return TotalTransactionsResponse.builder()
                 .totalIncome(incomeValue)
@@ -111,17 +116,17 @@ public class TransactionService {
 
     }
 
-    public ProfileTransactionsResponse getTotalTransactionsForProfile(Long profileId) {
+    public ProfileTransactionsResponse getTotalTransactionsForProfile(Long profileId, Long walletId, Long categoryId) {
 
-        var profile = this.getProfile(profileId);
+        var profile = this.profileService.getProfileById(profileId);
 
-        var income = transactionRepository.sumProfileIncomeTransactions(profile);
-        var outcome = transactionRepository.sumProfileOutcomeTransactions(profile);
+        var income = getIncome(profile, walletId, categoryId);
+        var outcome = getOutcome(profile, walletId, categoryId);
 
         var incomeValue = income == null ? BigDecimal.ZERO : BigDecimal.valueOf(income);
         var outcomeValue = outcome == null ? BigDecimal.ZERO : BigDecimal.valueOf(outcome);
 
-        var transactions = transactionRepository.findAllByProfile(profile);
+        var transactions = getAllByFilter(profile, walletId, categoryId);
 
         return ProfileTransactionsResponse.builder()
                 .totalTransactionsStatus(this.getTotalTransactionsForUsers())
@@ -135,26 +140,53 @@ public class TransactionService {
                         .amount(t.getAmount())
                         .description(t.getDescription())
                         .type(t.getType())
+                        .categoryName(t.getCategory() != null ? t.getCategory().getName() : null)
+                        .walletName(t.getWallet() != null ? t.getWallet().getName() : null)
                         .createdAt(t.getCreatedAt())
                         .build()).toList())
                 .build();
 
     }
 
-
-    private List<Profile> getProfiles() {
-        return this.profileRepository.findAll();
+    private List<Transaction> getAllByFilter(Profile profile, Long walletId, Long categoryId) {
+        if (walletId != null && categoryId != null) {
+            return repository.findAllByProfileAndWalletAndCategory(profile, walletId, categoryId);
+        } else if (walletId != null) {
+            return repository.findAllByProfileAndWallet(profile, walletId);
+        } else if (categoryId != null) {
+            return repository.findAllByProfileAndCategory(profile, categoryId);
+        } else {
+            return repository.findAllByProfile(profile);
+        }
     }
+
+    private Double getOutcome(Profile profile, Long walletId, Long categoryId) {
+        if (walletId != null && categoryId != null) {
+            return repository.sumProfileOutcomeTransactionsByWalletAndCategory(profile, walletId, categoryId);
+        } else if (walletId != null) {
+            return repository.sumProfileOutcomeTransactionsByWallet(profile, walletId);
+        } else if (categoryId != null) {
+            return repository.sumProfileOutcomeTransactionsByCategory(profile, categoryId);
+        } else {
+            return repository.sumProfileOutcomeTransactions(profile);
+        }
+    }
+
+    private Double getIncome(Profile profile, Long walletId, Long categoryId) {
+        if (walletId != null && categoryId != null) {
+            return repository.sumProfileIncomeTransactionsByWalletAndCategory(profile, walletId, categoryId);
+        } else if (walletId != null) {
+            return repository.sumProfileIncomeTransactionsByWallet(profile, walletId);
+        } else if (categoryId != null) {
+            return repository.sumProfileIncomeTransactionsByCategory(profile, categoryId);
+        } else {
+            return repository.sumProfileIncomeTransactions(profile);
+        }
+    }
+
     private Transaction getTransaction(Long id) {
-        return transactionRepository
+        return repository
                 .findById(id)
-                .orElseThrow(() -> new ApplicationException("Transaction doesn't exist for id:  " + id));
-    }
-
-    private Profile getProfile(Long id) {
-        return profileRepository
-                .findById(id)
-                .orElseThrow(() -> new ApplicationException("Current user doesn't have a profile with this id:  " + id));
-
+                .orElseThrow(() -> new ApplicationException(STR."Transaction doesn't exist for id:  \{id}"));
     }
 }

@@ -11,6 +11,8 @@ public record TransactionResponse(
         Long id,
         String description,
         BigDecimal amount,
+        String categoryName,
+        String walletName,
         TransactionType type,
         LocalDateTime createdAt
 ) {

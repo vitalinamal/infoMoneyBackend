@@ -16,13 +16,11 @@ public class ProfileService {
 
     private final ProfileRepository repository;
 
-    @Transactional(readOnly = true)
-    public Profile getProfileByName(Long profileId) {
+    public Profile getProfileById(Long profileId) {
         return getProfile(profileId);
     }
 
 
-    @Transactional(readOnly = true)
     public List<Profile> getProfiles() {
         return repository.findAll();
     }
@@ -31,7 +29,7 @@ public class ProfileService {
     @Transactional
     public void createProfile(ProfileRequest request) {
         if (repository.existsByName(request.name())) {
-            throw new ApplicationException("Current user already have a profile with this name:  " + request.name());
+            throw new ApplicationException(STR."Current user already have a profile with this name:  \{request.name()}");
         }
 
         repository.save(Profile.builder()
@@ -45,7 +43,7 @@ public class ProfileService {
         var currentProfile = this.getProfile(id);
 
         if (repository.existsByName(request.name())) {
-            throw new ApplicationException("Current user already have a profile with this name:  " + request.name());
+            throw new ApplicationException(STR."Current user already have a profile with this name:  \{request.name()}");
         }
 
         currentProfile.setName(request.name());
@@ -61,7 +59,7 @@ public class ProfileService {
 
     private Profile getProfile(Long id) {
         return repository
-                .findById(id)
-                .orElseThrow(() -> new ApplicationException("Current user doesn't have a profile with this id:  " + id));
+                .findByOwnId(id)
+                .orElseThrow(() -> new ApplicationException(STR."Current user doesn't have a profile with this id:  \{id}"));
     }
 }

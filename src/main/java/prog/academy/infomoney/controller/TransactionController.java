@@ -23,9 +23,12 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProfileTransactionsResponse> getTotalTransactionsForProfile(@PathVariable("id") Long profileId) {
+    public ResponseEntity<ProfileTransactionsResponse> getTotalTransactionsForProfile(
+            @PathVariable("id") Long profileId,
+            @RequestParam(value = "walletId", required = false) Long walletId,
+            @RequestParam(value = "categoryId", required = false) Long categoryId) {
         return ResponseEntity
-                .ok(service.getTotalTransactionsForProfile(profileId));
+                .ok(service.getTotalTransactionsForProfile(profileId, walletId, categoryId));
     }
 
 
