@@ -26,6 +26,11 @@ public class WalletController {
                 .build();
     }
 
+    @GetMapping
+    public ResponseEntity<List<WalletResponse>> getAllWallets() {
+        return ResponseEntity.ok(walletService.findAllWallets());
+    }
+
     @GetMapping("/profile/{profileId}")
     public ResponseEntity<List<WalletResponse>> getAllWalletsByProfile(@PathVariable Long profileId) {
         return ResponseEntity.ok(walletService.findAllWalletsByProfileId(profileId));

@@ -38,6 +38,10 @@ public class WalletService {
         repository.save(wallet);
     }
 
+    public List<WalletResponse> findAllWallets() {
+        return repository.findAll().stream().map(this::mapToWalletResponse).collect(toList());
+    }
+
     public List<WalletResponse> findAllWalletsByProfileId(Long profileId) {
         Profile profile = profileService.getProfileById(profileId);
         return repository.findAllByProfile(profile).stream().map(this::mapToWalletResponse).collect(toList());
