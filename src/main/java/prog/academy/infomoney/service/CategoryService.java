@@ -50,6 +50,10 @@ public class CategoryService {
         return mapToCategoryResponse(category);
     }
 
+    public List<CategoryResponse> findAllCategories() {
+        return repository.findAll().stream().map(this::mapToCategoryResponse).collect(toList());
+    }
+
     @Transactional
     public void updateCategory(Long id, CategoryRequest request) {
         if (repository.existsByProfileIdAndNameAndNotId(request.name(), request.profileId(), id)) {
@@ -86,4 +90,6 @@ public class CategoryService {
                 .description(category.getDescription())
                 .build();
     }
+
+
 }

@@ -30,6 +30,11 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.findAllCategoriesByProfile(id));
     }
 
+    @GetMapping
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+        return ResponseEntity.ok(categoryService.findAllCategories());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.findCategoryById(id));

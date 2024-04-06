@@ -81,7 +81,9 @@ public class TransactionService {
         this.profileRepository.save(profile);
     }
 
-    private static void updateTransactionFromRequest(TransactionRequest request, Transaction transaction) {
+    private void updateTransactionFromRequest(TransactionRequest request, Transaction transaction) {
+        transaction.setCategory(request.categoryId() != null ? categoryService.getCategoryById(request.categoryId()) : null);
+        transaction.setWallet(request.walletId() != null ? walletService.getWalletById(request.walletId()) : null);
         transaction.setAmount(request.amount());
         transaction.setType(TransactionType.valueOf(request.type()));
         transaction.setDescription(request.description());
